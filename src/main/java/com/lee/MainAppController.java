@@ -2,18 +2,17 @@ package com.lee;
 
 import com.lee.entity.NetworkClient;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainAppController {
 
@@ -41,7 +40,12 @@ public class MainAppController {
     @FXML
     private CheckBox chbHexOutput;
 
+    @FXML
+    private CheckBox chbHexInput;
+
     private StringBuilder sbInput;
+
+    private AsynchronousSocketChannel channel;
 
     private NetworkClient client;
 
@@ -56,33 +60,37 @@ public class MainAppController {
 
         System.out.println(ip + ", " + port);
         try {
-            client = new NetworkClient(ip, port);
+            channel = AsynchronousSocketChannel.open();
+            channel.connect(new InetSocketAddress(ip, port), channel, new CompletionHandler<Void, AsynchronousSocketChannel>() {
+                @Override
+                public void completed(Void result, AsynchronousSocketChannel attachment) {
+                    setUIEnable(true);
+                    client = new NetworkClient(attachment, MainAppController.this);
+                    client.start();
+                    System.out.println("连接成功");
+                }
+
+                @Override
+                public void failed(Throwable exc, AsynchronousSocketChannel attachment) {
+                    System.out.println("连接失败");
+                    setUIEnable(false);
+                }
+            });
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-        client.connect(connetComplation);
     }
 
-    CompletionHandler<Void, AsynchronousSocketChannel> connetComplation = new CompletionHandler<Void, AsynchronousSocketChannel>() {
-        @Override
-        public void completed(Void result, AsynchronousSocketChannel attachment) {
-            System.out.println("连接成功");
-            setUIEnable(true);
-        }
-
-        @Override
-        public void failed(Throwable exc, AsynchronousSocketChannel attachment) {
-            System.out.println("连接失败");
-            setUIEnable(false);
-        }
-    };
-
     @FXML
-    private void shutdown() {
+    public void shutdown() {
         try {
             client.shutdown();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NullPointerException e) {
+
         }
 
         setUIEnable(false);
@@ -121,7 +129,7 @@ public class MainAppController {
         client.send(msg);
     }
 
-    private void setUIEnable(boolean isConnected) {
+    public void setUIEnable(boolean isConnected) {
         btnConnect.setDisable(isConnected);
         btnClose.setDisable(!isConnected);
         btnSend.setDisable(!isConnected);
@@ -130,13 +138,37 @@ public class MainAppController {
     @FXML
     private void isSelectedOnOutBuffer() {
         String str = txtOutput.getText();
+        StringBuilder strOutput = new StringBuilder();
 
         if (chbHexOutput.isSelected())
-            str = strAsHex(str);
-        else
-            str = hexAsString(str);
+            for (Byte bt : str.getBytes())
+                strOutput.append(Integer.toHexString(bt)).append(" ");
+        else {
+            String[] strArray = str.split(" ");
+            byte[] btArray = new byte[strArray.length];
+            int i = 0;
+            for (String s : strArray)
+                if (!s.equals(""))
+                    btArray[i++] = (byte) Integer.parseInt(s, 16);
 
-        txtOutput.setText(str);
+            strOutput.append(new String(btArray));
+        }
+        strOutput.append("\n");
+
+        txtOutput.setText(strOutput.toString().trim());
+    }
+
+    public void showInput(byte[] msg) {
+        sbInput.append("[ 接收 ]\n");
+        if (chbHexInput.isSelected())
+            for (byte bt : msg)
+                sbInput.append(Integer.toHexString(bt)).append(" ");
+         else
+            sbInput.append(new String(msg));
+
+        sbInput.append("\n");
+        txtInput.setText(sbInput.toString());
+        txtInput.positionCaret(sbInput.length());
     }
 
     private String strAsHex(String msg) {
@@ -155,5 +187,9 @@ public class MainAppController {
 
     private String hexAsString(String msg) {
         return msg.replace(" ", "");
+    }
+
+    public void close() {
+
     }
 }
