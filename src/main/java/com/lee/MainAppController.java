@@ -5,12 +5,15 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.Arrays;
 
 public class MainAppController {
 
@@ -35,12 +38,15 @@ public class MainAppController {
     @FXML
     private Button btnClose;
 
-//    final Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+    @FXML
+    private CheckBox chbHexOutput;
+
+    private StringBuilder sbInput;
 
     private NetworkClient client;
 
     public MainAppController() throws IOException {
-
+        sbInput = new StringBuilder();
     }
 
     @FXML
@@ -72,23 +78,82 @@ public class MainAppController {
     };
 
     @FXML
-    private void close() {
+    private void shutdown() {
+        try {
+            client.shutdown();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        setUIEnable(false);
     }
 
     @FXML
     private void clearInputBuffer() {
-
+        sbInput.delete(0, sbInput.length());
+        txtInput.setText(sbInput.toString());
     }
 
     @FXML
     private void send() {
+        String msg = txtOutput.getText();
 
+        if (chbHexOutput.isSelected())
+            sendAsHex(msg);
+        else
+            sendAsChar(msg);
+
+        txtInput.setText(sbInput.append("发送\n").append(msg).append("\n").toString());
+    }
+
+    private void sendAsHex(String msg) {
+        String[] strArray = msg.split(" ");
+        byte[] btArray = new byte[strArray.length];
+        int i = 0;
+        for (String str : strArray)
+            btArray[i++] = (byte) Integer.parseInt(str, 16);
+
+        client.send(btArray);
+
+    }
+
+    private void sendAsChar(String msg) {
+        client.send(msg);
     }
 
     private void setUIEnable(boolean isConnected) {
         btnConnect.setDisable(isConnected);
         btnClose.setDisable(!isConnected);
         btnSend.setDisable(!isConnected);
+    }
+
+    @FXML
+    private void isSelectedOnOutBuffer() {
+        String str = txtOutput.getText();
+
+        if (chbHexOutput.isSelected())
+            str = strAsHex(str);
+        else
+            str = hexAsString(str);
+
+        txtOutput.setText(str);
+    }
+
+    private String strAsHex(String msg) {
+        StringBuilder sb = new StringBuilder();
+        boolean isByteH = false;   // 判断当前位时高位还是低位
+        for (int i=0; i<msg.length(); i++) {
+            sb.append(msg.substring(i, i + 1));
+            isByteH = !isByteH;
+
+            if (!isByteH)
+                sb.append(" ");
+        }
+
+        return sb.toString().trim();
+    }
+
+    private String hexAsString(String msg) {
+        return msg.replace(" ", "");
     }
 }

@@ -31,17 +31,17 @@
             <HBox prefHeight="40.0" prefWidth="200.0" spacing="10.0">
                <children>
                   <Button fx:id="btnConnect" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#connect" text="连接" HBox.hgrow="ALWAYS" />
-                  <Button fx:id="btnClose" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#close" text="断开" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="btnClose" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#shutdown" text="断开" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
             <Label maxWidth="1.7976931348623157E308" prefWidth="119.0" VBox.vgrow="ALWAYS" />
             <Label maxWidth="1.7976931348623157E308" text="接收区设置" />
-            <CheckBox fx:id="chkShowHexInput" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="16进制显示">
+            <CheckBox fx:id="chkHexInput" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="16进制显示">
                <VBox.margin>
                   <Insets left="10.0" right="10.0" />
                </VBox.margin>
             </CheckBox>
-            <CheckBox fx:id="chkShowNewLienInput" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="换行显示">
+            <CheckBox fx:id="chkNewLienInput" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="换行显示">
                <VBox.margin>
                   <Insets left="10.0" />
                </VBox.margin></CheckBox>
@@ -52,7 +52,7 @@
             </Button>
             <Label maxWidth="1.7976931348623157E308" />
             <Label maxWidth="1.7976931348623157E308" text="发送区设置" />
-            <CheckBox fx:id="chkShowHexOutput" mnemonicParsing="false" text="16进制发送">
+            <CheckBox fx:id="chbHexOutput" mnemonicParsing="false" text="16进制发送" onAction="#isSelectedOnOutBuffer">
                <VBox.margin>
                   <Insets left="10.0" />
                </VBox.margin>

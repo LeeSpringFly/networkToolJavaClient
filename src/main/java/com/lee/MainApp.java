@@ -13,7 +13,7 @@ public class MainApp extends Application {
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("mainApp.fxml"));
         primaryStage.setTitle("网络连接测试小工具——客户端");
 
-        primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
 

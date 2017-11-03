@@ -22,18 +22,6 @@ public class NetworkClient {
 
     public void connect(CompletionHandler<Void, AsynchronousSocketChannel> completionHandler) {
         client.connect(new InetSocketAddress(ip, port), client, completionHandler);
-//        new CompletionHandler<Void, AsynchronousSocketChannel>() {
-//            @Override
-//            public void completed(Void result, AsynchronousSocketChannel attachment) {
-//                System.out.println("连接成功");
-//            }
-//
-//            @Override
-//            public void failed(Throwable exc, AsynchronousSocketChannel attachment) {
-//                System.out.println("连接失败");
-//            }
-//        });
-
     }
 
     CompletionHandler<Integer, ByteBuffer> writer = new CompletionHandler<Integer, ByteBuffer>() {
@@ -60,13 +48,13 @@ public class NetworkClient {
         client.write(buffer, buffer, writer);
     }
 
-    public void close() {
-        try {
-            client.shutdownInput();
-            client.shutdownOutput();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void shutdown() throws IOException {
+        client.shutdownInput();
+        client.shutdownOutput();
+    }
+
+    public void close() throws IOException {
+        client.close();
     }
 
 }
